@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Usuario</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --color-primary: #007bff;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-bg: #f4f7f6;
+            --color-card: #ffffff;
+            --color-text: #333;
+            --color-text-light: #555;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg);
+            margin: 0;
+            color: var(--color-text);
+        }
+
+        /* --- Loader de página --- */
+        #loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--color-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Contenido principal (oculto hasta cargar) --- */
+        #main-content {
+            display: none; /* Se mostrará con JS */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Header --- */
+        .header {
+            background-color: var(--color-card);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #userEmail {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+        .btn-logout {
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        .btn-logout:hover { background-color: #c82333; }
+        
+        /* --- Panel Principal --- */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* --- Saldo --- */
+        .balance-card {
+            background-color: var(--color-card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .balance-card h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .balance-amount {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: 0.5rem 0;
+        }
+        .balance-amount.updating {
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- Acciones (Depositar / Retirar) --- */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .action-card {
+            background-color: var(--color-card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .action-card h3 {
+            margin-top: 0;
+            font-weight: 600;
+            border-bottom: 2px solid var(--color-bg);
+            padding-bottom: 0.5rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-success { background-color: var(--color-success); color: white; }
+        .btn-success:hover { background-color: #218838; transform: translateY(-2px); }
+        
+        .btn-danger { background-color: var(--color-danger); color: white; }
+        .btn-danger:hover { background-color: #c82333; transform: translateY(-2px); }
+
+        #message {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .success { color: var(--color-success); }
+        .error { color: var(--color-danger); }
+        .loading { color: var(--color-text); }
+
+        @media (max-width: 600px) {
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .balance-amount {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="main-content">
+        <header class="header">
+            <div class="header-logo">Flujo de Caja</div>
+            <div class="header-user">
+                <span id="userEmail">cargando...</span>
+                <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="balance-card">
+                <h2>Saldo Actual</h2>
+                <div class="balance-amount">$<span id="saldo">0.00</span></div>
+            </div>
+
+            <div class="actions-grid">
+                <div class="action-card">
+                    <h3>📥 Depositar Dinero</h3>
+                    <div class="input-group">
+                        <input type="number" id="monto-depositar" placeholder="Monto a depositar">
+                    </div>
+                    <button id="depositarBtn" class="btn btn-success">Depositar</button>
+                </div>
+
+                <div class="action-card">
+                    <h3>📤 Retirar Dinero</h3>
+                    <div class="input-group">
+                        <input type="number" id="monto-retirar" placeholder="Monto a retirar">
+                    </div>
+                    <button id="retirarBtn" class="btn btn-danger">Retirar</button>
+                </div>
+            </div>
+
+            <p id="message"></p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
+            authDomain: "simulador-pasarela.firebaseapp.com",
+            projectId: "simulador-pasarela",
+            storageBucket: "simulador-pasarela.appspot.com",
+            messagingSenderId: "288239143779",
+            appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
+        };
+
+        // --- INICIALIZACIÓN ---
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const increment = firebase.firestore.FieldValue.increment;
+
+        // --- REFERENCIAS DOM ---
+        const saldoSpan = document.getElementById("saldo");
+        const userEmailSpan = document.getElementById("userEmail");
+        const message = document.getElementById("message");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const depositarBtn = document.getElementById("depositarBtn");
+        const retirarBtn = document.getElementById("retirarBtn");
+        const montoDepositarInput = document.getElementById("monto-depositar");
+        const montoRetirarInput = document.getElementById("monto-retirar");
+        
+        const loader = document.getElementById("loader");
+        const mainContent = document.getElementById("main-content");
+
+        let currentUser = null;
+        let currentUserData = null;
+        let userDocRef = null;
+
+        // --- 1. VERIFICAR ESTADO DE AUTENTICACIÓN ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuario está logueado
+                currentUser = user;
+                userDocRef = db.collection("usuarios").doc(user.uid);
+                
+                // Escuchar cambios en tiempo real
+                userDocRef.onSnapshot((doc) => {
+                    if (doc.exists) {
+                        currentUserData = doc.data();
+                        
+                        // Redirigir si es cajero
+                        if (currentUserData.rol === 'cajero') {
+                            window.location.href = "admin.html";
+                            return;
+                        }
+
+                        // Actualizar UI
+                        userEmailSpan.textContent = currentUserData.email;
+                        saldoSpan.textContent = parseFloat(currentUserData.saldo).toFixed(2);
+                        saldoSpan.classList.add('updating');
+                        setTimeout(() => saldoSpan.classList.remove('updating'), 500);
+
+                        // Mostrar contenido, ocultar loader
+                        loader.style.display = 'none';
+                        mainContent.style.display = 'block';
+
+                    } else {
+                        // Documento de usuario no existe, algo salió mal
+                        showMessage("Error: No se encontró tu perfil.", "error");
+                        auth.signOut();
+                    }
+                }, (error) => {
+                    showMessage("Error al cargar datos: " + error.message, "error");
+                    auth.signOut();
+                });
+
+            } else {
+                // Usuario no está logueado, redirigir a login
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- 2. CERRAR SESIÓN ---
+        logoutBtn.addEventListener("click", async () => {
+            try {
+                await auth.signOut();
+                // onAuthStateChanged se encargará de la redirección
+            } catch (error) {
+                showMessage("Error al cerrar sesión: " + error.message, "error");
+            }
+        });
+
+        // --- 3. DEPOSITAR DINERO (Lógica solucionada) ---
+        depositarBtn.addEventListener("click", async () => {
+            const monto = parseFloat(montoDepositarInput.value);
+
+            if (isNaN(monto) || monto <= 0) {
+                showMessage("Por favor, ingresa un monto válido.", "error");
+                return;
+            }
+
+            try {
+                showMessage("Procesando depósito...", "loading");
+                // Usamos 'increment' para una actualización atómica
+                await userDocRef.update({
+                    saldo: increment(monto)
+                });
+                
+                showMessage(`✅ Se depositaron $${monto.toFixed(2)}`, "success");
+                montoDepositarInput.value = "";
+
+            } catch (error) {
+                showMessage("Error al depositar: " + error.message, "error");
+            }
+        });
+
+        // --- 4. RETIRAR DINERO (Lógica solucionada) ---
+        retirarBtn.addEventListener("click", async () => {
+            const monto = parseFloat(montoRetirarInput.value);
+            const saldoActual = parseFloat(currentUserData.saldo);
+
+            if (isNaN(monto) || monto <= 0) {
+                showMessage("Por favor, ingresa un monto válido.", "error");
+                return;
+            }
+
+            if (monto > saldoActual) {
+                showMessage("⚠️ Fondos insuficientes.", "error");
+                return;
+            }
+
+            try {
+                showMessage("Procesando retiro...", "loading");
+                // Usamos 'increment' con un valor negativo
+                await userDocRef.update({
+                    saldo: increment(-monto)
+                });
+                
+                showMessage(`✅ Se retiraron $${monto.toFixed(2)}`, "success");
+                montoRetirarInput.value = "";
+
+            } catch (error) {
+                showMessage("Error al retirar: " + error.message, "error");
+            }
+        });
+
+        // --- 5. MOSTRAR MENSAJES ---
+        function showMessage(msg, type) {
+            message.textContent = msg;
+            message.className = type;
+            // Borrar mensaje después de 4 segundos
+            setTimeout(() => {
+                if (message.textContent === msg) {
+                    message.textContent = "";
+                    message.className = "";
+                }
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

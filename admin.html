@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --color-primary: #17a2b8; /* Un color admin diferente */
+            --color-danger: #dc3545;
+            --color-bg: #f4f7f6;
+            --color-card: #ffffff;
+            --color-text: #333;
+            --color-text-light: #555;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg);
+            margin: 0;
+            color: var(--color-text);
+        }
+
+        /* --- Loader de página --- */
+        #loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--color-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Contenido principal (oculto hasta cargar) --- */
+        #main-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Header --- */
+        .header {
+            background-color: var(--color-card);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #adminEmail {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            font-weight: 600;
+        }
+        .btn-logout {
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        .btn-logout:hover { background-color: #c82333; }
+        
+        /* --- Panel Principal --- */
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        
+        .admin-card {
+            background-color: var(--color-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden; /* Para que la tabla respete el borde redondeado */
+        }
+        
+        .admin-card h2 {
+            margin: 0;
+            padding: 1.5rem 2rem;
+            font-weight: 600;
+            border-bottom: 2px solid var(--color-bg);
+        }
+
+        /* --- Tabla de Usuarios --- */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .user-table th, .user-table td {
+            padding: 1rem 2rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .user-table tr:hover {
+            background-color: #f5fafd;
+        }
+        
+        .user-email {
+            font-weight: 500;
+        }
+        
+        .user-saldo {
+            font-weight: 600;
+            color: var(--color-primary);
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        
+        #no-users {
+            padding: 2rem;
+            text-align: center;
+            color: var(--color-text-light);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="main-content">
+        <header class="header">
+            <div class="header-logo">Panel Admin</div>
+            <div class="header-user">
+                <span id="adminEmail">cargando...</span>
+                <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="admin-card">
+                <h2>📋 Lista de Usuarios</h2>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Saldo Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list">
+                        </tbody>
+                </table>
+                <div id="no-users" style="display:none;">
+                    <p>No hay usuarios registrados.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
+            authDomain: "simulador-pasarela.firebaseapp.com",
+            projectId: "simulador-pasarela",
+            storageBucket: "simulador-pasarela.appspot.com",
+            messagingSenderId: "288239143779",
+            appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
+        };
+
+        // --- INICIALIZACIÓN ---
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // --- REFERENCIAS DOM ---
+        const adminEmailSpan = document.getElementById("adminEmail");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const userList = document.getElementById("user-list");
+        const noUsersMsg = document.getElementById("no-users");
+        
+        const loader = document.getElementById("loader");
+        const mainContent = document.getElementById("main-content");
+        
+        // --- 1. VERIFICAR ESTADO DE AUTENTICACIÓN ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuario está logueado
+                const userDoc = await db.collection("usuarios").doc(user.uid).get();
+                
+                if (userDoc.exists && userDoc.data().rol === 'cajero') {
+                    // Es admin, cargar panel
+                    adminEmailSpan.textContent = `Admin: ${user.email}`;
+                    cargarUsuarios();
+                    
+                    loader.style.display = 'none';
+                    mainContent.style.display = 'block';
+
+                } else {
+                    // No es admin o no existe, redirigir a index (o login si su doc no existe)
+                    window.location.href = "index.html";
+                }
+
+            } else {
+                // Usuario no está logueado, redirigir a login
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- 2. CERRAR SESIÓN ---
+        logoutBtn.addEventListener("click", async () => {
+            try {
+                await auth.signOut();
+                // onAuthStateChanged se encargará de la redirección
+            } catch (error) {
+                console.error("Error al cerrar sesión: ", error);
+            }
+        });
+
+        // --- 3. CARGAR LISTA DE USUARIOS (EN TIEMPO REAL) ---
+        function cargarUsuarios() {
+            // Escuchar cambios en la colección de usuarios (solo los que tienen rol 'usuario')
+            db.collection("usuarios").where("rol", "==", "usuario")
+              .onSnapshot((querySnapshot) => {
+                
+                userList.innerHTML = ""; // Limpiar lista
+                
+                if (querySnapshot.empty) {
+                    noUsersMsg.style.display = "block";
+                    return;
+                }
+                
+                noUsersMsg.style.display = "none";
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><span class="user-email">${data.email}</span></td>
+                        <td><span class="user-saldo">$${parseFloat(data.saldo).toFixed(2)}</span></td>
+                    `;
+                    userList.appendChild(tr);
+                });
+
+            }, (error) => {
+                console.error("Error al obtener usuarios: ", error);
+                userList.innerHTML = `<tr><td colspan="2" style="color:red;">Error al cargar datos.</td></tr>`;
+            });
+        }
+    </script>
+</body>
+</html>

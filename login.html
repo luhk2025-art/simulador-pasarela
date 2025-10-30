@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso | Plataforma</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        :root {
+            --color-primary: #007bff;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-bg: #f4f7f6;
+            --color-card: #ffffff;
+            --color-text: #333;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--color-text);
+        }
+
+        .login-container {
+            background-color: var(--color-card);
+            padding: 2.5rem 3rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-container h1 {
+            margin-top: 0;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .btn-primary:hover { background-color: #0056b3; }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        #message {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .success { color: var(--color-success); }
+        .error { color: var(--color-danger); }
+        .loading { color: var(--color-text); }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>Bienvenido</h1>
+        <p>Accede a tu cuenta o regístrate</p>
+
+        <div class="input-group">
+            <label for="email">Correo Electrónico</label>
+            <input type="email" id="email" placeholder="tu@correo.com">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <div class="button-group">
+            <button id="loginBtn" class="btn btn-primary">Iniciar Sesión</button>
+            <button id="registerBtn" class="btn btn-secondary">Registrar</button>
+        </div>
+        
+        <p id="message"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
+            authDomain: "simulador-pasarela.firebaseapp.com",
+            projectId: "simulador-pasarela",
+            storageBucket: "simulador-pasarela.appspot.com",
+            messagingSenderId: "288239143779",
+            appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
+        };
+
+        // --- INICIALIZACIÓN ---
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // --- REFERENCIAS DOM ---
+        const registerBtn = document.getElementById("registerBtn");
+        const loginBtn = document.getElementById("loginBtn");
+        const message = document.getElementById("message");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+
+        // --- 1. VERIFICAR ESTADO DE AUTENTICACIÓN ---
+        // Esto se ejecuta al cargar la página. Si el usuario ya está logueado, lo redirige.
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                message.textContent = "Usuario detectado, redirigiendo...";
+                message.className = "loading";
+                await redirigirUsuario(user.uid);
+            }
+        });
+
+        // --- 2. REGISTRAR NUEVO USUARIO ---
+        registerBtn.addEventListener("click", async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showMessage("Por favor, completa ambos campos.", "error");
+                return;
+            }
+
+            try {
+                showMessage("Registrando...", "loading");
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // 🔹 Rol automático (admin@caja.com es 'cajero', el resto 'usuario')
+                let rol = (email === "admin@caja.com") ? "cajero" : "usuario";
+
+                // 🔹 Guardar usuario en Firestore
+                await db.collection("usuarios").doc(user.uid).set({
+                    email: email,
+                    saldo: 0,
+                    rol: rol,
+                    creado: new Date()
+                });
+
+                showMessage("✅ Usuario registrado. Serás redirigido.", "success");
+                // No es necesario redirigir, onAuthStateChanged lo hará.
+            
+            } catch (error) {
+                showMessage("⚠️ Error: " + error.message, "error");
+            }
+        });
+
+        // --- 3. INICIAR SESIÓN ---
+        loginBtn.addEventListener("click", async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showMessage("Por favor, completa ambos campos.", "error");
+                return;
+            }
+
+            try {
+                showMessage("Iniciando sesión...", "loading");
+                await auth.signInWithEmailAndPassword(email, password);
+                // No es necesario redirigir, onAuthStateChanged lo hará.
+                
+            } catch (error) {
+                showMessage("⚠️ Error: " + error.message, "error");
+            }
+        });
+
+        // --- 4. FUNCIÓN DE REDIRECCIÓN ---
+        async function redirigirUsuario(uid) {
+            try {
+                const userDoc = await db.collection("usuarios").doc(uid).get();
+                if (!userDoc.exists) {
+                    throw new Error("No se encontró el perfil del usuario.");
+                }
+                
+                const data = userDoc.data();
+
+                if (data.rol === "cajero") {
+                    window.location.href = "admin.html";
+                } else {
+                    window.location.href = "index.html";
+                }
+            } catch (error) {
+                showMessage("⚠️ Error al obtener datos: " + error.message, "error");
+                auth.signOut(); // Si hay error, cerramos sesión
+            }
+        }
+
+        // --- 5. MOSTRAR MENSAJES ---
+        function showMessage(msg, type) {
+            message.textContent = msg;
+            message.className = type; // 'success', 'error', o 'loading'
+        }
+    </script>
+</body>
+</html>
