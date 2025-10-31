@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Usuario</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
+        /* ... (Todo tu CSS actual va aquí) ... */
         :root {
             --color-primary: #007bff;
             --color-success: #28a745;
@@ -149,15 +148,38 @@
         .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
         .modal-buttons .btn { flex: 1; }
         .btn-confirm { background-color: var(--color-success); color: white; }
-        .btn-confirm:hover { background-color: #218838; }
         .btn-cancel { background-color: var(--color-danger); color: white; }
-        .btn-cancel:hover { background-color: #c82333; }
+
+        
+        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
+           AQUÍ ESTÁ EL ARREGLO PARA EL HEADER RESPONSIVE
+           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column; /* Apila los elementos */
+                gap: 1rem; /* Añade espacio entre el logo y la info */
+                align-items: flex-start; /* Alinea todo a la izquierda */
+                padding: 1rem 1.5rem;
+            }
+            .header-user {
+                width: 100%; /* La info del usuario ocupa todo el ancho */
+                justify-content: space-between; /* Empuja el email y el botón a los extremos */
+            }
+            .balance-amount {
+                font-size: 3rem; /* Saldo más pequeño en móviles */
+            }
+            .container {
+                margin: 1.5rem auto;
+            }
+        }
+        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
+           FIN DEL ARREGLO RESPONSIVE
+           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
+        
     </style>
 </head>
 <body>
-
     <div id="loader"><div class="spinner"></div></div>
-
     <div id="main-content">
         <header class="header">
             <div class="header-logo">MiPlataforma</div>
@@ -166,20 +188,17 @@
                 <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
             </div>
         </header>
-
         <div class="container">
             <div class="balance-card">
                 <h2>Saldo Actual</h2>
                 <div class="balance-amount">$<span id="saldo">0.00</span></div>
             </div>
-
             <div class="history-card">
                 <h3>Historial de Movimientos</h3>
                 <ul id="history-list" class="history-list">
                     <p id="history-empty" style="text-align: center; color: #777; padding: 1rem 0;">No hay movimientos todavía.</p>
                 </ul>
             </div>
-
             <div class="actions-grid">
                 <div class="action-card">
                     <h3>💸 Transferir a un Usuario</h3>
@@ -192,11 +211,9 @@
                     <button id="transferirBtn" class="btn btn-primary">Transferir</button>
                 </div>
             </div>
-            
             <p id="message"></p>
         </div>
     </div>
-
     <div id="confirmModal" class="modal">
         <div class="modal-content">
             <h3 id="confirmTitle">Confirmar Transacción</h3>
@@ -210,9 +227,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
     <script>
-        // --- CONFIGURACIÓN E INICIALIZACIÓN ---
+        // --- (Todo el JavaScript es el mismo de la vez pasada) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
             authDomain: "simulador-pasarela.firebaseapp.com",
@@ -221,44 +237,33 @@
             messagingSenderId: "288239143779",
             appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const increment = firebase.firestore.FieldValue.increment;
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
-
-        // --- REFERENCIAS DOM ---
         const saldoSpan = document.getElementById("saldo");
         const userEmailSpan = document.getElementById("userEmail");
         const message = document.getElementById("message");
         const logoutBtn = document.getElementById("logoutBtn");
         const loader = document.getElementById("loader");
         const mainContent = document.getElementById("main-content");
-        
         const transferirBtn = document.getElementById("transferirBtn");
         const emailTransferirInput = document.getElementById("email-transferir");
         const montoTransferirInput = document.getElementById("monto-transferir");
-        
-        // Estas referencias ahora encontrarán el HTML
         const confirmModal = document.getElementById("confirmModal");
         const confirmText = document.getElementById("confirmText");
         const confirmBtn = document.getElementById("confirmBtn");
         const cancelBtn = document.getElementById("cancelBtn");
-
         const historyList = document.getElementById("history-list");
         const historyEmpty = document.getElementById("history-empty");
-
         let currentUser = null;
         let currentUserData = null;
         let userDocRef = null;
-
-        // --- 1. VERIFICAR AUTH ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
                 userDocRef = db.collection("usuarios").doc(user.uid);
-                
                 userDocRef.onSnapshot((doc) => {
                     if (doc.exists) {
                         currentUserData = doc.data();
@@ -267,10 +272,8 @@
                         }
                         userEmailSpan.textContent = currentUserData.email;
                         saldoSpan.textContent = parseFloat(currentUserData.saldo).toFixed(2);
-                        
                         loader.style.display = 'none';
                         mainContent.style.display = 'block';
-
                     } else {
                         showMessage("Error: No se encontró tu perfil. Por favor, regístrate de nuevo.", "error");
                         auth.signOut();
@@ -280,97 +283,64 @@
                     showMessage("Error al cargar datos: " + error.message, "error");
                     auth.signOut();
                 });
-
                 cargarHistorial(user.uid);
-
             } else {
                 window.location.href = "login.html";
             }
         });
-        
-        // --- 2. FUNCIÓN: CARGAR HISTORIAL (Lógica sin cambios) ---
         function cargarHistorial(uid) {
-            db.collection("transacciones")
-                .where("uid", "==", uid)
-                .onSnapshot((querySnapshot) => {
-                    
-                    historyList.innerHTML = '';
-                    
-                    if (querySnapshot.empty) {
-                        historyList.appendChild(historyEmpty);
-                        return;
+            db.collection("transacciones").where("uid", "==", uid).onSnapshot((querySnapshot) => {
+                historyList.innerHTML = '';
+                if (querySnapshot.empty) {
+                    historyList.appendChild(historyEmpty);
+                    return;
+                }
+                let transacciones = [];
+                querySnapshot.forEach((doc) => transacciones.push(doc.data()));
+                transacciones.sort((a, b) => (b.fecha ? b.fecha.toMillis() : 0) - (a.fecha ? a.fecha.toMillis() : 0));
+                const ultimasTransacciones = transacciones.slice(0, 15);
+                ultimasTransacciones.forEach((data) => {
+                    const li = document.createElement("li");
+                    li.className = "history-item";
+                    const fecha = data.fecha ? data.fecha.toDate().toLocaleString() : 'Procesando...';
+                    let detalle = '';
+                    let montoClase = '';
+                    if (data.tipo === 'enviado') {
+                        detalle = `<strong>Enviado a:</strong> ${data.a}`;
+                        montoClase = 'sent';
+                    } else if (data.tipo === 'recibido') {
+                        detalle = `<strong>Recibido de:</strong> ${data.de}`;
+                        montoClase = 'received';
+                    } else if (data.tipo === 'carga') {
+                         detalle = `<strong>Carga de:</strong> ${data.de}`;
+                        montoClase = 'received';
                     }
-
-                    let transacciones = [];
-                    querySnapshot.forEach((doc) => {
-                        transacciones.push(doc.data());
-                    });
-
-                    transacciones.sort((a, b) => {
-                        const fechaA = a.fecha ? a.fecha.toMillis() : 0;
-                        const fechaB = b.fecha ? b.fecha.toMillis() : 0;
-                        return fechaB - fechaA;
-                    });
-
-                    const ultimasTransacciones = transacciones.slice(0, 15);
-
-                    ultimasTransacciones.forEach((data) => {
-                        const li = document.createElement("li");
-                        li.className = "history-item";
-                        const fecha = data.fecha ? data.fecha.toDate().toLocaleString() : 'Procesando...';
-                        let detalle = '';
-                        let montoClase = '';
-
-                        if (data.tipo === 'enviado') {
-                            detalle = `<strong>Enviado a:</strong> ${data.a}`;
-                            montoClase = 'sent';
-                        } else if (data.tipo === 'recibido') {
-                            detalle = `<strong>Recibido de:</strong> ${data.de}`;
-                            montoClase = 'received';
-                        } else if (data.tipo === 'carga') {
-                             detalle = `<strong>Carga de:</strong> ${data.de}`;
-                            montoClase = 'received';
-                        }
-                        
-                        li.innerHTML = `
-                            <div class="history-details">
-                                ${detalle}
-                                <span class="date">${fecha}</span>
-                            </div>
-                            <div class="history-amount ${montoClase}">
-                                ${data.tipo === 'enviado' ? '-' : '+'} $${parseFloat(data.monto).toFixed(2)}
-                            </div>
-                        `;
-                        historyList.appendChild(li);
-                    });
+                    li.innerHTML = `
+                        <div class="history-details">
+                            ${detalle}
+                            <span class="date">${fecha}</span>
+                        </div>
+                        <div class="history-amount ${montoClase}">
+                            ${data.tipo === 'enviado' ? '-' : '+'} $${parseFloat(data.monto).toFixed(2)}
+                        </div>
+                    `;
+                    historyList.appendChild(li);
                 });
+            });
         }
-
-
-        // --- 3. CERRAR SESIÓN ---
-        logoutBtn.addEventListener("click", async () => {
-            await auth.signOut();
-        });
-
-
-        // --- 4. LÓGICA DE TRANSFERENCIA ---
-        
-        // (Función showConfirmation sin cambios)
+        logoutBtn.addEventListener("click", async () => { await auth.signOut(); });
         function showConfirmation(email, monto) {
             confirmText.innerHTML = `¿Estás seguro de transferir <strong>$${monto.toFixed(2)}</strong> a <strong>${email}</strong>?`;
-            confirmModal.style.display = "flex"; // Esto ahora funcionará
+            confirmModal.style.display = "flex";
             return new Promise((resolve) => {
                 confirmBtn.onclick = () => { confirmModal.style.display = "none"; resolve(true); };
                 cancelBtn.onclick = () => { confirmModal.style.display = "none"; resolve(false); };
             });
         }
-
-        // (Botón transferirBtn sin cambios)
         transferirBtn.addEventListener("click", async () => {
             const emailDestinatario = emailTransferirInput.value;
             const monto = parseFloat(montoTransferirInput.value);
             const saldoActual = parseFloat(currentUserData.saldo);
-
             if (!emailDestinatario || isNaN(monto) || monto <= 0) {
                 showMessage("Por favor, completa un email y monto válidos.", "error"); return;
             }
@@ -380,46 +350,32 @@
             if (monto > saldoActual) {
                 showMessage("⚠️ Fondos insuficientes.", "error"); return;
             }
-
             const confirmado = await showConfirmation(emailDestinatario, monto);
             if (!confirmado) {
                 showMessage("Transferencia cancelada.", "loading"); return;
             }
-
             await ejecutarTransferencia(emailDestinatario, monto);
         });
-
-        // (Función ejecutarTransferencia sin cambios)
         async function ejecutarTransferencia(emailDestinatario, monto) {
             showMessage("Procesando transferencia...", "loading");
-            
-            const destinatarioQuery = await db.collection("usuarios")
-                .where("email", "==", emailDestinatario)
-                .get();
-
+            const destinatarioQuery = await db.collection("usuarios").where("email", "==", emailDestinatario).get();
             if (destinatarioQuery.empty) {
                 showMessage(`⚠️ Error: Usuario "${emailDestinatario}" no encontrado.`, "error");
                 return;
             }
-
             const destinatarioDoc = destinatarioQuery.docs[0];
             const destinatarioRef = destinatarioDoc.ref;
             const remitenteRef = userDocRef; 
-
             try {
                 await db.runTransaction(async (t) => {
                     const remitenteDoc = await t.get(remitenteRef);
                     const saldoActualRemitente = remitenteDoc.data().saldo;
-
                     if (saldoActualRemitente < monto) {
                         throw new Error("Fondos insuficientes.");
                     }
-
                     t.update(remitenteRef, { saldo: increment(-monto) });
                     t.update(destinatarioRef, { saldo: increment(monto) });
-
                     const fechaActual = serverTimestamp();
-                    
                     const historialRemitenteRef = db.collection("transacciones").doc();
                     t.set(historialRemitenteRef, {
                         uid: currentUser.uid, 
@@ -428,7 +384,6 @@
                         a: emailDestinatario,
                         fecha: fechaActual
                     });
-
                     const historialDestinatarioRef = db.collection("transacciones").doc();
                     t.set(historialDestinatarioRef, {
                         uid: destinatarioDoc.id, 
@@ -438,19 +393,14 @@
                         fecha: fechaActual
                     });
                 });
-
                 showMessage(`✅ Transferencia de $${monto.toFixed(2)} exitosa.`, "success");
                 emailTransferirInput.value = "";
                 montoTransferirInput.value = "";
-
             } catch (error) {
                 console.error("Error en la transacción:", error);
                 showMessage(`⚠️ Error: ${error.message}`, "error");
             }
         }
-
-
-        // --- 5. MOSTRAR MENSAJES ---
         function showMessage(msg, type) {
             message.textContent = msg;
             message.className = type;

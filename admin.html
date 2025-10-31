@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
+        /* ... (Todo el CSS del admin va aquí) ... */
         :root {
             --color-primary: #17a2b8;
             --color-success: #28a745;
@@ -61,7 +60,7 @@
             background-color: var(--color-card);
             border-radius: 12px;
             box-shadow: var(--shadow);
-            overflow: hidden;
+            overflow: hidden; /* Esto es importante */
         }
         .admin-card h2 {
             margin: 0; padding: 1.5rem 2rem;
@@ -88,6 +87,9 @@
             font-family: monospace; font-size: 1.1rem;
         }
         
+        .user-actions {
+            white-space: nowrap; /* Evita que los botones se partan */
+        }
         .user-actions .btn-sm {
             font-size: 0.8rem;
             padding: 0.4rem 0.8rem;
@@ -120,7 +122,6 @@
         .history-details .date { font-size: 0.8rem; color: #555; display: block; }
         .history-amount { font-weight: 600; }
         
-        /* === CSS DEL MODAL === */
         .modal {
             display: none; position: fixed; z-index: 1000;
             left: 0; top: 0; width: 100%; height: 100%;
@@ -134,10 +135,8 @@
             animation: fadeIn 0.3s;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
         .modal-content h3 { margin-top: 0; }
         .modal-content p { margin-bottom: 1.5rem; font-size: 0.9rem; }
-        
         .modal-input {
             width: 100%;
             padding: 0.75rem;
@@ -148,14 +147,48 @@
             text-align: center;
             margin-bottom: 1.5rem;
         }
-        
         .modal-buttons { display: flex; gap: 1rem; }
         .modal-buttons .btn { flex: 1; padding: 0.8rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .btn-confirm { background-color: var(--color-success); color: white; border: none; }
         .btn-confirm:hover { background-color: #218838; }
         .btn-cancel { background-color: #6c757d; color: white; border: none; }
         .btn-cancel:hover { background-color: #5a6268; }
-        /* === FIN CSS DEL MODAL === */
+
+        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
+           AQUÍ ESTÁ EL ARREGLO PARA LA TABLA RESPONSIVE
+           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
+        .table-wrapper {
+            overflow-x: auto; /* Permite deslizar horizontalmente */
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+                padding: 1rem 1.5rem;
+            }
+            .header-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .container {
+                margin: 1.5rem auto;
+            }
+            .admin-card h2 {
+                padding: 1.5rem;
+            }
+            .user-table th, .user-table td {
+                padding: 1rem; /* Menos padding en móvil */
+            }
+            .history-list {
+                padding: 0 1rem;
+            }
+        }
+        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
+           FIN DEL ARREGLO RESPONSIVE
+           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
         
     </style>
 </head>
@@ -175,46 +208,37 @@
         <div class="container">
              <div class="admin-card">
                 <h2>📋 Lista de Usuarios (En Tiempo Real)</h2>
-                <table class="user-table">
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Saldo Actual</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-list"></tbody>
-                </table>
+                
+                <div class="table-wrapper">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Saldo Actual</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list"></tbody>
+                    </table>
+                </div>
                 <div id="no-users" style="display:none;"><p>No hay usuarios registrados.</p></div>
             </div>
             
             <div class="admin-card" style="margin-top: 2rem;">
                  <h2> Historial General de Transacciones</h2>
-                 <ul id="history-list" class="history-list"></ul>
+                 <div class="table-wrapper"> <ul id="history-list" class="history-list"></ul>
+                 </div>
                  <p id="history-empty" style="padding: 1rem 2rem; color: #777;">No hay transacciones en el sistema.</p>
             </div>
         </div>
     </div>
     
     <div id="actionModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Título</h3>
-            <p id="modalText">Para usuario:</p>
-            
-            <input type="number" id="modalMonto" class="modal-input" placeholder="0.00">
-            
-            <div class="modal-buttons">
-                <button id="confirmBtn" class="btn btn-confirm">Confirmar</button>
-                <button id="cancelBtn" class="btn btn-cancel">Cancelar</button>
-            </div>
         </div>
-    </div>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN E INICIALIZACIÓN ---
+        // --- (Todo el JavaScript es el mismo de la vez pasada) ---
+        // --- (No es necesario copiarlo de nuevo si ya te funciona) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
             authDomain: "simulador-pasarela.firebaseapp.com",
@@ -223,14 +247,11 @@
             messagingSenderId: "288239143779",
             appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const increment = firebase.firestore.FieldValue.increment;
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
-
-        // --- REFERENCIAS DOM ---
         const adminEmailSpan = document.getElementById("adminEmail");
         const logoutBtn = document.getElementById("logoutBtn");
         const userList = document.getElementById("user-list");
@@ -239,29 +260,21 @@
         const mainContent = document.getElementById("main-content");
         const globalHistoryList = document.getElementById("history-list");
         const globalHistoryEmpty = document.getElementById("history-empty");
-        
-        // Referencias del Modal
         const actionModal = document.getElementById("actionModal");
         const modalTitle = document.getElementById("modalTitle");
         const modalText = document.getElementById("modalText");
         const modalMonto = document.getElementById("modalMonto");
         const confirmBtn = document.getElementById("confirmBtn");
         const cancelBtn = document.getElementById("cancelBtn");
-        
         let adminUser = null; 
-
-        // --- 1. VERIFICAR AUTENTICACIÓN ---
         auth.onAuthStateChanged(async (user) => {
              if (user) {
                 const userDoc = await db.collection("usuarios").doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().rol === 'cajero') {
                     adminUser = userDoc.data();
                     adminEmailSpan.textContent = `Admin: ${adminUser.email}`;
-                    
-                    // === ESTAS FUNCIONES YA NO TIENEN EL ERROR DEL "CARGANDO" ===
                     cargarUsuariosEnTiempoReal();
                     cargarHistorialGeneral(); 
-                    
                     loader.style.display = 'none';
                     mainContent.style.display = 'block';
                 } else if (userDoc.exists) {
@@ -273,18 +286,14 @@
                 window.location.href = "login.html";
             }
         });
-
-        // --- 2. CERRAR SESIÓN ---
         logoutBtn.addEventListener("click", async () => { await auth.signOut(); });
-
-        // --- 3. CARGAR USUARIOS (Corregido: Sin filtros de DB) ---
         function cargarUsuariosEnTiempoReal() {
             db.collection("usuarios").onSnapshot((querySnapshot) => {
                 userList.innerHTML = ""; 
                 let userCount = 0;
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.rol === 'usuario') { // Filtro en JS
+                    if (data.rol === 'usuario') {
                         userCount++;
                         const uid = doc.id;
                         const tr = document.createElement("tr");
@@ -302,8 +311,6 @@
                 noUsersMsg.style.display = (userCount === 0) ? "block" : "none";
             });
         }
-        
-        // --- 4. CARGAR HISTORIAL (Corregido: Sin ordenar en DB) ---
         function cargarHistorialGeneral() {
             db.collection("transacciones").onSnapshot((querySnapshot) => {
                 globalHistoryList.innerHTML = "";
@@ -311,20 +318,14 @@
                     globalHistoryEmpty.style.display = "block"; return;
                 }
                 globalHistoryEmpty.style.display = "none";
-                
                 let transacciones = [];
                 querySnapshot.forEach((doc) => transacciones.push(doc.data()));
-                
-                // Ordenamos en JS
                 transacciones.sort((a, b) => (b.fecha ? b.fecha.toMillis() : 0) - (a.fecha ? a.fecha.toMillis() : 0));
-                
                 const ultimasTransacciones = transacciones.slice(0, 30);
-                
                 ultimasTransacciones.forEach((data) => {
                     const fecha = data.fecha ? data.fecha.toDate().toLocaleString() : '...';
                     let detalle = '';
                     let montoClase = '';
-                    
                     if(data.tipo === 'enviado') {
                         detalle = `<strong>${data.de || 'N/A'}</strong> ➔ ${data.a}`;
                     } else if(data.tipo === 'recibido') {
@@ -336,7 +337,6 @@
                         detalle = `<strong>Admin</strong> ➔ ${data.a}`;
                         montoClase = 'style="color: var(--color-danger);"';
                     }
-                    
                     const li = document.createElement("li");
                     li.className = "history-item";
                     li.innerHTML = `
@@ -352,16 +352,11 @@
                 });
             });
         }
-        
-        // --- 5. ACCIONES DE CARGAR Y RETIRAR (Con el Modal) ---
-        
         userList.addEventListener("click", async (e) => {
             const target = e.target;
             const uid = target.dataset.uid;
             const email = target.dataset.email;
-
             if (!uid) return; 
-
             if (target.classList.contains("btn-cargar")) {
                 await modificarSaldo(uid, email, 'cargar');
             }
@@ -369,14 +364,12 @@
                 await modificarSaldo(uid, email, 'retirar');
             }
         });
-        
         function showMontoModal(tipo, email) {
             modalTitle.textContent = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} Dinero`;
             modalText.textContent = `Usuario: ${email}`;
             modalMonto.value = '';
             actionModal.style.display = "flex";
             modalMonto.focus();
-
             return new Promise((resolve) => {
                 confirmBtn.onclick = () => {
                     const monto = parseFloat(modalMonto.value);
@@ -387,21 +380,16 @@
                     actionModal.style.display = "none";
                     resolve(monto); 
                 };
-                
                 cancelBtn.onclick = () => {
                     actionModal.style.display = "none";
                     resolve(null); 
                 };
             });
         }
-        
         async function modificarSaldo(uid, email, tipo) {
             const monto = await showMontoModal(tipo, email);
-            
             if (monto === null) return;
-            
             const userRef = db.collection("usuarios").doc(uid);
-            
             if(tipo === 'retirar') {
                 const userDoc = await userRef.get();
                 if(monto > userDoc.data().saldo) {
@@ -409,16 +397,13 @@
                     return;
                 }
             }
-            
             const montoFinal = (tipo === 'cargar') ? monto : -monto;
             const historialTipo = (tipo === 'cargar') ? 'carga' : 'retiro';
             const historialDe = (tipo === 'cargar') ? adminUser.email : email;
             const historialA = (tipo === 'cargar') ? email : adminUser.email;
-            
             try {
                 const batch = db.batch();
                 batch.update(userRef, { saldo: increment(montoFinal) });
-                
                 const historialRef = db.collection("transacciones").doc();
                 batch.set(historialRef, {
                     uid: uid,
@@ -428,9 +413,7 @@
                     a: historialA,
                     fecha: serverTimestamp()
                 });
-                
                 await batch.commit();
-                
             } catch (error) {
                 alert("Error al procesar la operación: " + error.message);
             }
