@@ -17,199 +17,150 @@
             --color-text-light: #555;
             --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--color-bg);
             margin: 0;
             color: var(--color-text);
         }
-
-        /* --- Loader de página --- */
         #loader {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             background: var(--color-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
+            display: flex; justify-content: center; align-items: center; z-index: 100;
         }
         .spinner {
             width: 50px; height: 50px;
-            border: 5px solid #f3f3f3;
+            border: 5px solid #f3f3ff;
             border-top: 5px solid var(--color-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #main-content { display: none; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- Contenido principal (oculto hasta cargar) --- */
-        #main-content {
-            display: none; /* Se mostrará con JS */
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* --- Header --- */
         .header {
-            background-color: var(--color-card);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: var(--color-card); padding: 1rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .header-logo {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--color-primary);
-        }
-        .header-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        #userEmail {
-            font-size: 0.9rem;
-            color: var(--color-text-light);
-        }
+        .header-logo { font-size: 1.5rem; font-weight: 600; color: var(--color-primary); }
+        .header-user { display: flex; align-items: center; gap: 1rem; }
+        #userEmail { font-size: 0.9rem; color: var(--color-text-light); }
         .btn-logout {
-            background: var(--color-danger);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
+            background: var(--color-danger); color: white; border: none;
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            font-weight: 500; transition: background-color 0.3s;
         }
         .btn-logout:hover { background-color: #c82333; }
         
-        /* --- Panel Principal --- */
-        .container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        /* --- Saldo --- */
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        
         .balance-card {
-            background-color: var(--color-card);
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            margin-bottom: 2rem;
+            background-color: var(--color-card); padding: 2.5rem;
+            border-radius: 12px; box-shadow: var(--shadow);
+            text-align: center; margin-bottom: 2rem;
         }
         .balance-card h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: 400;
-            color: var(--color-text-light);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin: 0; font-size: 1.2rem; font-weight: 400;
+            color: var(--color-text-light); text-transform: uppercase; letter-spacing: 1px;
         }
         .balance-amount {
-            font-size: 4rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            margin: 0.5rem 0;
+            font-size: 4rem; font-weight: 700;
+            color: var(--color-primary); margin: 0.5rem 0;
         }
-        .balance-amount.updating {
-            animation: pulse 0.5s;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* --- Acciones (Depositar / Retirar) --- */
-        .actions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        
+        .actions-grid { 
+            display: grid; 
+            grid-template-columns: 1fr;
             gap: 2rem;
+            margin-bottom: 2rem;
         }
         .action-card {
-            background-color: var(--color-card);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+            background-color: var(--color-card); padding: 2rem;
+            border-radius: 12px; box-shadow: var(--shadow);
         }
         .action-card h3 {
-            margin-top: 0;
-            font-weight: 600;
-            border-bottom: 2px solid var(--color-bg);
-            padding-bottom: 0.5rem;
+            margin-top: 0; font-weight: 600;
+            border-bottom: 2px solid var(--color-bg); padding-bottom: 0.5rem;
         }
-        .input-group {
-            margin-bottom: 1rem;
-        }
+        .input-group { margin-bottom: 1rem; }
         .input-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
+            width: 100%; padding: 0.75rem; border: 1px solid #ddd;
+            border-radius: 8px; box-sizing: border-box; font-size: 1rem;
         }
         .btn {
-            width: 100%;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
+            width: 100%; padding: 0.8rem; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: 600; font-size: 1rem;
             transition: background-color 0.3s, transform 0.2s;
         }
-        .btn-success { background-color: var(--color-success); color: white; }
-        .btn-success:hover { background-color: #218838; transform: translateY(-2px); }
-        
-        .btn-danger { background-color: var(--color-danger); color: white; }
-        .btn-danger:hover { background-color: #c82333; transform: translateY(-2px); }
+        .btn-primary { background-color: var(--color-primary); color: white; }
+        .btn-primary:hover { background-color: #0056b3; transform: translateY(-2px); }
 
-        #message {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
+        .history-card {
+            background-color: var(--color-card); padding: 2rem;
+            border-radius: 12px; box-shadow: var(--shadow);
         }
-        .success { color: var(--color-success); }
-        .error { color: var(--color-danger); }
-        .loading { color: var(--color-text); }
+        .history-card h3 {
+            margin-top: 0; font-weight: 600;
+            border-bottom: 2px solid var(--color-bg); padding-bottom: 0.5rem;
+        }
+        .history-list {
+            list-style: none; padding: 0; margin: 0;
+            max-height: 300px; overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-details { font-size: 0.9rem; }
+        .history-details strong {
+            display: block;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        .history-details .date { font-size: 0.8rem; color: #777; }
+        .history-amount { font-weight: 600; font-size: 1.1rem; }
+        .history-amount.received { color: var(--color-success); }
+        .history-amount.sent { color: var(--color-danger); }
 
-        @media (max-width: 600px) {
-            .actions-grid {
-                grid-template-columns: 1fr;
-            }
-            .header {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .balance-amount {
-                font-size: 3rem;
-            }
+        #message { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+        .success { color: var(--color-success); } .error { color: var(--color-danger); } .loading { color: var(--color-text); }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.5);
+            justify-content: center; align-items: center;
         }
+        .modal-content {
+            background-color: var(--color-card); color: var(--color-text);
+            padding: 2rem; border-radius: 12px; box-shadow: var(--shadow);
+            width: 90%; max-width: 400px; text-align: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .modal-buttons .btn { flex: 1; }
+        .btn-confirm { background-color: var(--color-success); color: white; }
+        .btn-confirm:hover { background-color: #218838; }
+        .btn-cancel { background-color: var(--color-danger); color: white; }
+        .btn-cancel:hover { background-color: #c82333; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-    </div>
+    <div id="loader"><div class="spinner"></div></div>
 
     <div id="main-content">
         <header class="header">
-            <div class="header-logo">Flujo de Caja</div>
+            <div class="header-logo">MiPlataforma</div>
             <div class="header-user">
                 <span id="userEmail">cargando...</span>
                 <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
@@ -222,34 +173,46 @@
                 <div class="balance-amount">$<span id="saldo">0.00</span></div>
             </div>
 
-            <div class="actions-grid">
-                <div class="action-card">
-                    <h3>📥 Depositar Dinero</h3>
-                    <div class="input-group">
-                        <input type="number" id="monto-depositar" placeholder="Monto a depositar">
-                    </div>
-                    <button id="depositarBtn" class="btn btn-success">Depositar</button>
-                </div>
-
-                <div class="action-card">
-                    <h3>📤 Retirar Dinero</h3>
-                    <div class="input-group">
-                        <input type="number" id="monto-retirar" placeholder="Monto a retirar">
-                    </div>
-                    <button id="retirarBtn" class="btn btn-danger">Retirar</button>
-                </div>
+            <div class="history-card">
+                <h3>Historial de Movimientos</h3>
+                <ul id="history-list" class="history-list">
+                    <p id="history-empty" style="text-align: center; color: #777; padding: 1rem 0;">No hay movimientos todavía.</p>
+                </ul>
             </div>
 
+            <div class="actions-grid">
+                <div class="action-card">
+                    <h3>💸 Transferir a un Usuario</h3>
+                    <div class="input-group">
+                        <input type="email" id="email-transferir" placeholder="Email del destinatario (ID)">
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="monto-transferir" placeholder="Monto a transferir">
+                    </div>
+                    <button id="transferirBtn" class="btn btn-primary">Transferir</button>
+                </div>
+            </div>
+            
             <p id="message"></p>
         </div>
     </div>
 
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmTitle">Confirmar Transacción</h3>
+            <p id="confirmText">¿Estás seguro?</p>
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="btn btn-confirm">Confirmar</button>
+                <button id="cancelBtn" class="btn btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN FIREBASE ---
+        // --- CONFIGURACIÓN E INICIALIZACIÓN ---
         const firebaseConfig = {
             apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
             authDomain: "simulador-pasarela.firebaseapp.com",
@@ -259,147 +222,240 @@
             appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
         };
 
-        // --- INICIALIZACIÓN ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const increment = firebase.firestore.FieldValue.increment;
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
         // --- REFERENCIAS DOM ---
         const saldoSpan = document.getElementById("saldo");
         const userEmailSpan = document.getElementById("userEmail");
         const message = document.getElementById("message");
         const logoutBtn = document.getElementById("logoutBtn");
-        const depositarBtn = document.getElementById("depositarBtn");
-        const retirarBtn = document.getElementById("retirarBtn");
-        const montoDepositarInput = document.getElementById("monto-depositar");
-        const montoRetirarInput = document.getElementById("monto-retirar");
-        
         const loader = document.getElementById("loader");
         const mainContent = document.getElementById("main-content");
+        
+        const transferirBtn = document.getElementById("transferirBtn");
+        const emailTransferirInput = document.getElementById("email-transferir");
+        const montoTransferirInput = document.getElementById("monto-transferir");
+        
+        // Estas referencias ahora encontrarán el HTML
+        const confirmModal = document.getElementById("confirmModal");
+        const confirmText = document.getElementById("confirmText");
+        const confirmBtn = document.getElementById("confirmBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+
+        const historyList = document.getElementById("history-list");
+        const historyEmpty = document.getElementById("history-empty");
 
         let currentUser = null;
         let currentUserData = null;
         let userDocRef = null;
 
-        // --- 1. VERIFICAR ESTADO DE AUTENTICACIÓN ---
+        // --- 1. VERIFICAR AUTH ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Usuario está logueado
                 currentUser = user;
                 userDocRef = db.collection("usuarios").doc(user.uid);
                 
-                // Escuchar cambios en tiempo real
                 userDocRef.onSnapshot((doc) => {
                     if (doc.exists) {
                         currentUserData = doc.data();
-                        
-                        // Redirigir si es cajero
                         if (currentUserData.rol === 'cajero') {
-                            window.location.href = "admin.html";
-                            return;
+                            window.location.href = "admin.html"; return;
                         }
-
-                        // Actualizar UI
                         userEmailSpan.textContent = currentUserData.email;
                         saldoSpan.textContent = parseFloat(currentUserData.saldo).toFixed(2);
-                        saldoSpan.classList.add('updating');
-                        setTimeout(() => saldoSpan.classList.remove('updating'), 500);
-
-                        // Mostrar contenido, ocultar loader
+                        
                         loader.style.display = 'none';
                         mainContent.style.display = 'block';
 
                     } else {
-                        // Documento de usuario no existe, algo salió mal
-                        showMessage("Error: No se encontró tu perfil.", "error");
+                        showMessage("Error: No se encontró tu perfil. Por favor, regístrate de nuevo.", "error");
                         auth.signOut();
+                        window.location.href = "login.html";
                     }
                 }, (error) => {
                     showMessage("Error al cargar datos: " + error.message, "error");
                     auth.signOut();
                 });
 
+                cargarHistorial(user.uid);
+
             } else {
-                // Usuario no está logueado, redirigir a login
                 window.location.href = "login.html";
             }
         });
+        
+        // --- 2. FUNCIÓN: CARGAR HISTORIAL (Lógica sin cambios) ---
+        function cargarHistorial(uid) {
+            db.collection("transacciones")
+                .where("uid", "==", uid)
+                .onSnapshot((querySnapshot) => {
+                    
+                    historyList.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        historyList.appendChild(historyEmpty);
+                        return;
+                    }
 
-        // --- 2. CERRAR SESIÓN ---
-        logoutBtn.addEventListener("click", async () => {
-            try {
-                await auth.signOut();
-                // onAuthStateChanged se encargará de la redirección
-            } catch (error) {
-                showMessage("Error al cerrar sesión: " + error.message, "error");
-            }
-        });
+                    let transacciones = [];
+                    querySnapshot.forEach((doc) => {
+                        transacciones.push(doc.data());
+                    });
 
-        // --- 3. DEPOSITAR DINERO (Lógica solucionada) ---
-        depositarBtn.addEventListener("click", async () => {
-            const monto = parseFloat(montoDepositarInput.value);
+                    transacciones.sort((a, b) => {
+                        const fechaA = a.fecha ? a.fecha.toMillis() : 0;
+                        const fechaB = b.fecha ? b.fecha.toMillis() : 0;
+                        return fechaB - fechaA;
+                    });
 
-            if (isNaN(monto) || monto <= 0) {
-                showMessage("Por favor, ingresa un monto válido.", "error");
-                return;
-            }
+                    const ultimasTransacciones = transacciones.slice(0, 15);
 
-            try {
-                showMessage("Procesando depósito...", "loading");
-                // Usamos 'increment' para una actualización atómica
-                await userDocRef.update({
-                    saldo: increment(monto)
+                    ultimasTransacciones.forEach((data) => {
+                        const li = document.createElement("li");
+                        li.className = "history-item";
+                        const fecha = data.fecha ? data.fecha.toDate().toLocaleString() : 'Procesando...';
+                        let detalle = '';
+                        let montoClase = '';
+
+                        if (data.tipo === 'enviado') {
+                            detalle = `<strong>Enviado a:</strong> ${data.a}`;
+                            montoClase = 'sent';
+                        } else if (data.tipo === 'recibido') {
+                            detalle = `<strong>Recibido de:</strong> ${data.de}`;
+                            montoClase = 'received';
+                        } else if (data.tipo === 'carga') {
+                             detalle = `<strong>Carga de:</strong> ${data.de}`;
+                            montoClase = 'received';
+                        }
+                        
+                        li.innerHTML = `
+                            <div class="history-details">
+                                ${detalle}
+                                <span class="date">${fecha}</span>
+                            </div>
+                            <div class="history-amount ${montoClase}">
+                                ${data.tipo === 'enviado' ? '-' : '+'} $${parseFloat(data.monto).toFixed(2)}
+                            </div>
+                        `;
+                        historyList.appendChild(li);
+                    });
                 });
-                
-                showMessage(`✅ Se depositaron $${monto.toFixed(2)}`, "success");
-                montoDepositarInput.value = "";
+        }
 
-            } catch (error) {
-                showMessage("Error al depositar: " + error.message, "error");
-            }
+
+        // --- 3. CERRAR SESIÓN ---
+        logoutBtn.addEventListener("click", async () => {
+            await auth.signOut();
         });
 
-        // --- 4. RETIRAR DINERO (Lógica solucionada) ---
-        retirarBtn.addEventListener("click", async () => {
-            const monto = parseFloat(montoRetirarInput.value);
+
+        // --- 4. LÓGICA DE TRANSFERENCIA ---
+        
+        // (Función showConfirmation sin cambios)
+        function showConfirmation(email, monto) {
+            confirmText.innerHTML = `¿Estás seguro de transferir <strong>$${monto.toFixed(2)}</strong> a <strong>${email}</strong>?`;
+            confirmModal.style.display = "flex"; // Esto ahora funcionará
+            return new Promise((resolve) => {
+                confirmBtn.onclick = () => { confirmModal.style.display = "none"; resolve(true); };
+                cancelBtn.onclick = () => { confirmModal.style.display = "none"; resolve(false); };
+            });
+        }
+
+        // (Botón transferirBtn sin cambios)
+        transferirBtn.addEventListener("click", async () => {
+            const emailDestinatario = emailTransferirInput.value;
+            const monto = parseFloat(montoTransferirInput.value);
             const saldoActual = parseFloat(currentUserData.saldo);
 
-            if (isNaN(monto) || monto <= 0) {
-                showMessage("Por favor, ingresa un monto válido.", "error");
+            if (!emailDestinatario || isNaN(monto) || monto <= 0) {
+                showMessage("Por favor, completa un email y monto válidos.", "error"); return;
+            }
+            if (emailDestinatario === currentUserData.email) {
+                showMessage("No puedes transferirte a ti mismo.", "error"); return;
+            }
+            if (monto > saldoActual) {
+                showMessage("⚠️ Fondos insuficientes.", "error"); return;
+            }
+
+            const confirmado = await showConfirmation(emailDestinatario, monto);
+            if (!confirmado) {
+                showMessage("Transferencia cancelada.", "loading"); return;
+            }
+
+            await ejecutarTransferencia(emailDestinatario, monto);
+        });
+
+        // (Función ejecutarTransferencia sin cambios)
+        async function ejecutarTransferencia(emailDestinatario, monto) {
+            showMessage("Procesando transferencia...", "loading");
+            
+            const destinatarioQuery = await db.collection("usuarios")
+                .where("email", "==", emailDestinatario)
+                .get();
+
+            if (destinatarioQuery.empty) {
+                showMessage(`⚠️ Error: Usuario "${emailDestinatario}" no encontrado.`, "error");
                 return;
             }
 
-            if (monto > saldoActual) {
-                showMessage("⚠️ Fondos insuficientes.", "error");
-                return;
-            }
+            const destinatarioDoc = destinatarioQuery.docs[0];
+            const destinatarioRef = destinatarioDoc.ref;
+            const remitenteRef = userDocRef; 
 
             try {
-                showMessage("Procesando retiro...", "loading");
-                // Usamos 'increment' con un valor negativo
-                await userDocRef.update({
-                    saldo: increment(-monto)
+                await db.runTransaction(async (t) => {
+                    const remitenteDoc = await t.get(remitenteRef);
+                    const saldoActualRemitente = remitenteDoc.data().saldo;
+
+                    if (saldoActualRemitente < monto) {
+                        throw new Error("Fondos insuficientes.");
+                    }
+
+                    t.update(remitenteRef, { saldo: increment(-monto) });
+                    t.update(destinatarioRef, { saldo: increment(monto) });
+
+                    const fechaActual = serverTimestamp();
+                    
+                    const historialRemitenteRef = db.collection("transacciones").doc();
+                    t.set(historialRemitenteRef, {
+                        uid: currentUser.uid, 
+                        tipo: 'enviado',
+                        monto: monto,
+                        a: emailDestinatario,
+                        fecha: fechaActual
+                    });
+
+                    const historialDestinatarioRef = db.collection("transacciones").doc();
+                    t.set(historialDestinatarioRef, {
+                        uid: destinatarioDoc.id, 
+                        tipo: 'recibido',
+                        monto: monto,
+                        de: currentUserData.email,
+                        fecha: fechaActual
+                    });
                 });
-                
-                showMessage(`✅ Se retiraron $${monto.toFixed(2)}`, "success");
-                montoRetirarInput.value = "";
+
+                showMessage(`✅ Transferencia de $${monto.toFixed(2)} exitosa.`, "success");
+                emailTransferirInput.value = "";
+                montoTransferirInput.value = "";
 
             } catch (error) {
-                showMessage("Error al retirar: " + error.message, "error");
+                console.error("Error en la transacción:", error);
+                showMessage(`⚠️ Error: ${error.message}`, "error");
             }
-        });
+        }
+
 
         // --- 5. MOSTRAR MENSAJES ---
         function showMessage(msg, type) {
             message.textContent = msg;
             message.className = type;
-            // Borrar mensaje después de 4 segundos
             setTimeout(() => {
-                if (message.textContent === msg) {
-                    message.textContent = "";
-                    message.className = "";
-                }
+                if (message.textContent === msg) { message.textContent = ""; message.className = ""; }
             }, 4000);
         }
     </script>

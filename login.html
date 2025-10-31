@@ -67,7 +67,7 @@
             padding: 0.75rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+            box-sizing: border-box; /* Importante */
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
@@ -161,6 +161,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp; // Para la fecha
 
         // --- REFERENCIAS DOM ---
         const registerBtn = document.getElementById("registerBtn");
@@ -170,16 +171,14 @@
         const passwordInput = document.getElementById("password");
 
         // --- 1. VERIFICAR ESTADO DE AUTENTICACIÓN ---
-        // Esto se ejecuta al cargar la página. Si el usuario ya está logueado, lo redirige.
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                message.textContent = "Usuario detectado, redirigiendo...";
-                message.className = "loading";
+                showMessage("Usuario detectado, redirigiendo...", "loading");
                 await redirigirUsuario(user.uid);
             }
         });
 
-        // --- 2. REGISTRAR NUEVO USUARIO ---
+        // --- 2. REGISTRAR NUEVO USUARIO (Con historial) ---
         registerBtn.addEventListener("click", async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
@@ -194,19 +193,38 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                // 🔹 Rol automático (admin@caja.com es 'cajero', el resto 'usuario')
                 let rol = (email === "admin@caja.com") ? "cajero" : "usuario";
+                const fechaActual = serverTimestamp();
 
-                // 🔹 Guardar usuario en Firestore
-                await db.collection("usuarios").doc(user.uid).set({
+                // Usamos un "batch" para escribir en 2 colecciones a la vez
+                const batch = db.batch();
+
+                // 1. Escribir en "usuarios"
+                const userRef = db.collection("usuarios").doc(user.uid);
+                batch.set(userRef, {
                     email: email,
                     saldo: 0,
                     rol: rol,
-                    creado: new Date()
+                    creado: fechaActual
                 });
 
+                // 2. Escribir el historial inicial (solo si NO es el admin)
+                if (rol === "usuario") {
+                    const historialRef = db.collection("transacciones").doc();
+                    batch.set(historialRef, {
+                        uid: user.uid, // El dueño de este registro
+                        tipo: 'carga',
+                        monto: 0,
+                        de: 'admin@caja.com',
+                        fecha: fechaActual
+                    });
+                }
+                
+                // 3. Ejecutar ambas escrituras
+                await batch.commit();
+
+                // onAuthStateChanged se encargará de redirigir
                 showMessage("✅ Usuario registrado. Serás redirigido.", "success");
-                // No es necesario redirigir, onAuthStateChanged lo hará.
             
             } catch (error) {
                 showMessage("⚠️ Error: " + error.message, "error");
@@ -226,7 +244,7 @@
             try {
                 showMessage("Iniciando sesión...", "loading");
                 await auth.signInWithEmailAndPassword(email, password);
-                // No es necesario redirigir, onAuthStateChanged lo hará.
+                // onAuthStateChanged se encargará de redirigir
                 
             } catch (error) {
                 showMessage("⚠️ Error: " + error.message, "error");
