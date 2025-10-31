@@ -433,8 +433,12 @@
         
         async function modificarSaldo(uid, email, tipo) {
             const monto = await showMontoModal(tipo, email);
-            if (monto === null) return;
+            
+            if (monto === null) return; // Si presionó "cancelar"
+            
             const userRef = db.collection("usuarios").doc(uid);
+            
+            // Verificar fondos (si es retiro)
             if(tipo === 'retirar') {
                 const userDoc = await userRef.get();
                 if(monto > userDoc.data().saldo) {
@@ -442,13 +446,20 @@
                     return;
                 }
             }
+            
             const montoFinal = (tipo === 'cargar') ? monto : -monto;
             const historialTipo = (tipo === 'cargar') ? 'carga' : 'retiro';
-            const historialDe = (tipo ===a === 'cargar') ? adminUser.email : email;
+
+            // 🔹 🔹 AQUÍ ESTABA EL ERROR ( ===a === ) 🔹 🔹
+            // Ya está corregido a ( === )
+            const historialDe = (tipo === 'cargar') ? adminUser.email : email;
             const historialA = (tipo === 'cargar') ? email : adminUser.email;
+            
             try {
+                // El resto de la lógica está bien
                 const batch = db.batch();
                 batch.update(userRef, { saldo: increment(montoFinal) });
+                
                 const historialRef = db.collection("transacciones").doc();
                 batch.set(historialRef, {
                     uid: uid,
@@ -458,7 +469,9 @@
                     a: historialA,
                     fecha: serverTimestamp()
                 });
+                
                 await batch.commit();
+                
             } catch (error) {
                 alert("Error al procesar la operación: " + error.message);
             }
