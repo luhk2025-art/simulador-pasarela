@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Usuario</title>
     <style>
-        /* ... (Todo tu CSS actual va aquí) ... */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
         :root {
             --color-primary: #007bff;
             --color-success: #28a745;
@@ -47,13 +48,20 @@
         }
         .header-logo { font-size: 1.5rem; font-weight: 600; color: var(--color-primary); }
         .header-user { display: flex; align-items: center; gap: 1rem; }
-        #userEmail { font-size: 0.9rem; color: var(--color-text-light); }
+        #userEmail { 
+            font-size: 0.9rem; color: var(--color-text-light);
+            /* Evita que el email largo se desborde */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px; /* Ajusta si es necesario */
+        }
         .btn-logout {
             background: var(--color-danger); color: white; border: none;
             padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
             font-weight: 500; transition: background-color 0.3s;
+            flex-shrink: 0; /* Evita que el botón se encoja */
         }
-        .btn-logout:hover { background-color: #c82333; }
         
         .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         
@@ -152,7 +160,7 @@
 
         
         /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
-           AQUÍ ESTÁ EL ARREGLO PARA EL HEADER RESPONSIVE
+           ARREGLO RESPONSIVE PARA EL HEADER
            🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
         @media (max-width: 600px) {
             .header {
@@ -164,6 +172,9 @@
             .header-user {
                 width: 100%; /* La info del usuario ocupa todo el ancho */
                 justify-content: space-between; /* Empuja el email y el botón a los extremos */
+            }
+            #userEmail {
+                max-width: calc(100% - 120px); /* Ajusta el ancho del email para que quepa el botón */
             }
             .balance-amount {
                 font-size: 3rem; /* Saldo más pequeño en móviles */
@@ -228,7 +239,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script>
-        // --- (Todo el JavaScript es el mismo de la vez pasada) ---
+        // --- TODO EL JAVASCRIPT DE INDEX.HTML (SIN CAMBIOS) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
             authDomain: "simulador-pasarela.firebaseapp.com",

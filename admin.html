@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
     <style>
-        /* ... (Todo el CSS del admin va aquí) ... */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
         :root {
             --color-primary: #17a2b8;
             --color-success: #28a745;
@@ -60,7 +61,7 @@
             background-color: var(--color-card);
             border-radius: 12px;
             box-shadow: var(--shadow);
-            overflow: hidden; /* Esto es importante */
+            overflow: hidden;
         }
         .admin-card h2 {
             margin: 0; padding: 1.5rem 2rem;
@@ -68,7 +69,17 @@
             border-bottom: 2px solid var(--color-bg);
         }
         
-        .user-table { width: 100%; border-collapse: collapse; }
+        /* 🔹 ARREGLO PARA TABLA RESPONSIVE 🔹 */
+        .table-wrapper {
+            overflow-x: auto; /* Permite deslizar horizontalmente */
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+        }
+        
+        .user-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 600px; /* Fuerza el scroll en pantallas pequeñas */
+        }
         .user-table th, .user-table td {
             padding: 1rem 2rem;
             text-align: left;
@@ -154,14 +165,6 @@
         .btn-cancel { background-color: #6c757d; color: white; border: none; }
         .btn-cancel:hover { background-color: #5a6268; }
 
-        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
-           AQUÍ ESTÁ EL ARREGLO PARA LA TABLA RESPONSIVE
-           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
-        .table-wrapper {
-            overflow-x: auto; /* Permite deslizar horizontalmente */
-            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
-        }
-
         @media (max-width: 600px) {
             .header {
                 flex-direction: column;
@@ -179,16 +182,14 @@
             .admin-card h2 {
                 padding: 1.5rem;
             }
+            /* Menos padding en las tablas para que quepa más */
             .user-table th, .user-table td {
-                padding: 1rem; /* Menos padding en móvil */
+                padding: 1rem 1rem; 
             }
             .history-list {
                 padding: 0 1rem;
             }
         }
-        /* 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹
-           FIN DEL ARREGLO RESPONSIVE
-           🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 🔹 */
         
     </style>
 </head>
@@ -221,12 +222,15 @@
                         <tbody id="user-list"></tbody>
                     </table>
                 </div>
+                
                 <div id="no-users" style="display:none;"><p>No hay usuarios registrados.</p></div>
             </div>
             
             <div class="admin-card" style="margin-top: 2rem;">
                  <h2> Historial General de Transacciones</h2>
-                 <div class="table-wrapper"> <ul id="history-list" class="history-list"></ul>
+                 <div class="table-wrapper">
+                    <ul id="history-list" class="history-list" style="min-width: 500px;">
+                        </ul>
                  </div>
                  <p id="history-empty" style="padding: 1rem 2rem; color: #777;">No hay transacciones en el sistema.</p>
             </div>
@@ -234,11 +238,24 @@
     </div>
     
     <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Título</h3>
+            <p id="modalText">Para usuario:</p>
+            <input type="number" id="modalMonto" class="modal-input" placeholder="0.00">
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="btn btn-confirm">Confirmar</button>
+                <button id="cancelBtn" class="btn btn-cancel">Cancelar</button>
+            </div>
         </div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // --- (Todo el JavaScript es el mismo de la vez pasada) ---
-        // --- (No es necesario copiarlo de nuevo si ya te funciona) ---
+        // --- CONFIGURACIÓN E INICIALIZACIÓN ---
         const firebaseConfig = {
             apiKey: "AIzaSyCTs3-GGkWTDtuZyxW_1bPnleVFzpZ4WAc",
             authDomain: "simulador-pasarela.firebaseapp.com",
@@ -247,11 +264,14 @@
             messagingSenderId: "288239143779",
             appId: "1:288239143779:web:a994fbdb7698f8ddf8e156"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const increment = firebase.firestore.FieldValue.increment;
         const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
+
+        // --- REFERENCIAS DOM ---
         const adminEmailSpan = document.getElementById("adminEmail");
         const logoutBtn = document.getElementById("logoutBtn");
         const userList = document.getElementById("user-list");
@@ -267,14 +287,18 @@
         const confirmBtn = document.getElementById("confirmBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         let adminUser = null; 
+
+        // --- 1. VERIFICAR AUTENTICACIÓN ---
         auth.onAuthStateChanged(async (user) => {
              if (user) {
                 const userDoc = await db.collection("usuarios").doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().rol === 'cajero') {
                     adminUser = userDoc.data();
                     adminEmailSpan.textContent = `Admin: ${adminUser.email}`;
+                    
                     cargarUsuariosEnTiempoReal();
-                    cargarHistorialGeneral(); 
+                    cargarHistorialGeneral(); // Esta función ya no bloquea
+                    
                     loader.style.display = 'none';
                     mainContent.style.display = 'block';
                 } else if (userDoc.exists) {
@@ -286,14 +310,18 @@
                 window.location.href = "login.html";
             }
         });
+
+        // --- 2. CERRAR SESIÓN ---
         logoutBtn.addEventListener("click", async () => { await auth.signOut(); });
+
+        // --- 3. CARGAR USUARIOS (Corregido: Sin filtros de DB) ---
         function cargarUsuariosEnTiempoReal() {
             db.collection("usuarios").onSnapshot((querySnapshot) => {
                 userList.innerHTML = ""; 
                 let userCount = 0;
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.rol === 'usuario') {
+                    if (data.rol === 'usuario') { // Filtro en JS
                         userCount++;
                         const uid = doc.id;
                         const tr = document.createElement("tr");
@@ -311,25 +339,36 @@
                 noUsersMsg.style.display = (userCount === 0) ? "block" : "none";
             });
         }
+        
+        // --- 4. 🔹 🔹 CARGAR HISTORIAL (¡CORREGIDO!) 🔹 🔹 ---
         function cargarHistorialGeneral() {
+            // ⛔️ HEMOS QUITADO .orderBy("fecha") ⛔️
             db.collection("transacciones").onSnapshot((querySnapshot) => {
+                
                 globalHistoryList.innerHTML = "";
                 if (querySnapshot.empty) {
                     globalHistoryEmpty.style.display = "block"; return;
                 }
                 globalHistoryEmpty.style.display = "none";
+                
                 let transacciones = [];
                 querySnapshot.forEach((doc) => transacciones.push(doc.data()));
+                
+                // 1. Ordenamos en JavaScript
                 transacciones.sort((a, b) => (b.fecha ? b.fecha.toMillis() : 0) - (a.fecha ? a.fecha.toMillis() : 0));
+                
                 const ultimasTransacciones = transacciones.slice(0, 30);
+                
+                // 2. Dibujamos en pantalla
                 ultimasTransacciones.forEach((data) => {
                     const fecha = data.fecha ? data.fecha.toDate().toLocaleString() : '...';
                     let detalle = '';
                     let montoClase = '';
+                    
                     if(data.tipo === 'enviado') {
                         detalle = `<strong>${data.de || 'N/A'}</strong> ➔ ${data.a}`;
                     } else if(data.tipo === 'recibido') {
-                        return; 
+                        return; // No mostramos "recibido" para evitar duplicados
                     } else if(data.tipo === 'carga') {
                         detalle = `<strong>Admin</strong> ➔ ${data.de}`;
                         montoClase = 'style="color: var(--color-success);"';
@@ -337,6 +376,7 @@
                         detalle = `<strong>Admin</strong> ➔ ${data.a}`;
                         montoClase = 'style="color: var(--color-danger);"';
                     }
+                    
                     const li = document.createElement("li");
                     li.className = "history-item";
                     li.innerHTML = `
@@ -352,6 +392,9 @@
                 });
             });
         }
+        
+        // --- 5. ACCIONES DE CARGAR Y RETIRAR (Con el Modal) ---
+        
         userList.addEventListener("click", async (e) => {
             const target = e.target;
             const uid = target.dataset.uid;
@@ -364,6 +407,7 @@
                 await modificarSaldo(uid, email, 'retirar');
             }
         });
+        
         function showMontoModal(tipo, email) {
             modalTitle.textContent = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} Dinero`;
             modalText.textContent = `Usuario: ${email}`;
@@ -386,6 +430,7 @@
                 };
             });
         }
+        
         async function modificarSaldo(uid, email, tipo) {
             const monto = await showMontoModal(tipo, email);
             if (monto === null) return;
@@ -399,7 +444,7 @@
             }
             const montoFinal = (tipo === 'cargar') ? monto : -monto;
             const historialTipo = (tipo === 'cargar') ? 'carga' : 'retiro';
-            const historialDe = (tipo === 'cargar') ? adminUser.email : email;
+            const historialDe = (tipo ===a === 'cargar') ? adminUser.email : email;
             const historialA = (tipo === 'cargar') ? email : adminUser.email;
             try {
                 const batch = db.batch();
